@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="app" ng-strict-di>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>d3js Test</title>
+
+		<link rel="stylesheet" type="text/css" href="../bower_components/nvd3/build/nv.d3.css" />
+
+		<script type="application/javascript" src="../bower_components/jquery/dist/jquery.js"> </script>
+		<script type="application/javascript" src="../bower_components/d3/d3.js"> </script>
+		<script type="application/javascript" src="../bower_components/nvd3/build/nv.d3.js"> </script>
+
+		<script type="application/javascript" src="../bower_components/angular/angular.js"> </script>
+		<script type="application/javascript" src="../angular-d3.js"> </script>
+		<script type="application/javascript" src="../angular-d3-nv.js"> </script>
+		<script type="application/javascript" src="../angular-d3-chart.js"> </script>
+
+		<script type="application/javascript">
+(function(GLOBALOBJECT, angular){
+	'use strict';
+
+	function AppTestController(){
+		var vm = this;
+		var args = arguments;
+		vm.$$di = {};
+		angular.forEach(AppTestController.$inject, function(di, i){
+			vm.$$di[di] = args[i];
+		});
+
+		vm.$$local ={
+			'loaders': {},
+		};
+
+		vm.data = [];
+		vm.data2 = [];
+
+		vm.$$local.loaders['options.json'] = vm.$$di.$http.get('options.json')
+			.then(function(response){
+				var options = vm.$$di.d3Chart.util.compileOptions(response.data);
+
+				return options;
+			})
+		;
+
+		vm.$$local.loaders['static'] = vm.$$di.d3Chart.util.compileOptions({
+			'x': 'name',
+			'y': 'qty',
+			/*
+			'staggerLabels': [true],    //Too many bars and not enough room? Try staggering labels.
+			'tooltip': [true],        //Don't show tooltips
+			'showValues': [true],       //...instead, show the bar value right on top of each bar.
+			*/
+		});
+
+		vm.$$di.$timeout(function autoInc0(){
+			if(vm.data.length > 0){
+				vm.data[0].qty++;
+			}
+			vm.$$di.$timeout(autoInc0, 3000);
+		}, 3000);
+
+		vm.$$di.$http.get('data.json')
+			.then(function(response){
+				vm.data = response.data['data-set'];
+				vm.data2 = [{'key': 'Group 1', 'values': vm.data}, {'key': 'Group 2', 'values': angular.copy(vm.data)}]
+			})
+		;
+	}
+
+	AppTestController.$inject = ['d3', '$timeout', '$http', '$parse', 'd3Chart'];
+	angular.extend(AppTestController.prototype, {
+		'getOptions': function(url){
+			var vm = this;
+
+			return vm.$$local.loaders[url];
+		}
+	});
+
+	angular.module('app', ['d3', 'd3.nv', 'd3.chart'])
+		.controller('AppTestController', AppTestController)
+	;
+})(this, this.angular);
+		</script>
+
+		<style type="text/css">
+html, body{
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+body{
+	display: flex;
+	flex-direction: column;
+}
+
+#chart-container{
+	display: flex;
+	flex-direction: row;
+	flex: 1 1 auto;
+}
+		</style>
+		<style type="text/css">
+@media (max-width: 600px) {
+	#chart-container{
+		flex-direction: column;
+	}
+}
+		</style>
+	</head>
+	<body ng-controller="AppTestController as ctrl">
+		<div id="chart-container">
+			<div d3-chart="ctrl.data" d3-chart-type="pie" d3-chart-options="ctrl.getOptions('options.json')" style="display: flex; flex: 1; flex-direction: column;"></div>
+			<div d3-chart="ctrl.data2" d3-chart-type="multiBar" d3-chart-options="ctrl.getOptions('static')" style="display: flex; flex: 1; flex-direction: column;"></div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,6 @@
+{
+	"x": "name",
+	"y": "qty",
+	"showLabels": [true],
+	"labelType": ["percent"]
+}

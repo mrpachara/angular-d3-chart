@@ -1,0 +1,7 @@
+{
+	"uri": "data.json",
+	"data-set": [
+		{"name": "a", "qty": 20},
+		{"name": "b", "qty": 50}
+	]
+}
